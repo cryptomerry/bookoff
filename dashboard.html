@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BookOff 即売れCD ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0f0f0f; color: #e0e0e0; padding: 20px;
+}
+.header {
+    max-width: 1200px; margin: 0 auto 24px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.header h1 { font-size: 1.4rem; color: #ff6b35; }
+.header .period { color: #888; font-size: 0.85rem; }
+.stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; max-width: 1200px; margin: 0 auto 24px;
+}
+.stat-card {
+    background: #1a1a2e; border-radius: 10px; padding: 16px;
+    text-align: center; border: 1px solid #2a2a4e;
+}
+.stat-value { font-size: 1.8rem; font-weight: 700; color: #ff6b35; }
+.stat-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+.chart-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; max-width: 1200px; margin: 0 auto 24px;
+}
+.chart-card {
+    background: #1a1a2e; border-radius: 10px; padding: 16px;
+    border: 1px solid #2a2a4e;
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-card h3 { font-size: 0.95rem; margin-bottom: 12px; color: #ccc; }
+.chart-card canvas { max-height: 300px; max-width: 100%; }
+.ranking { max-width: 1200px; margin: 0 auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; padding: 8px 12px; background: #1a1a2e; color: #888; border-bottom: 2px solid #333; }
+td { padding: 6px 12px; border-bottom: 1px solid #222; }
+tr:hover td { background: #1a1a2e; }
+.badge-fast { color: #ff6b35; font-weight: 600; }
+.badge-monster { color: #4ecdc4; }
+a { color: #4ecdc4; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.footer { text-align: center; color: #555; font-size: 0.75rem; margin-top: 32px; }
+@media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>📀 BookOff 即売れCD ダッシュボード</h1>
+        <div class="period">2025/06/07 〜 2026/06/27（363日間）</div>
+    </div>
+    <div style="text-align:right; font-size:0.8rem; color:#888;">
+        最終更新: 2026/06/28 16:17
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-value">377</div><div class="stat-label">追跡商品</div></div>
+    <div class="stat-card"><div class="stat-value">417</div><div class="stat-label">店舗数</div></div>
+    <div class="stat-card"><div class="stat-value">244,263</div><div class="stat-label">総レコード</div></div>
+    <div class="stat-card"><div class="stat-value">22</div><div class="stat-label">即売れCD</div></div>
+    <div class="stat-card"><div class="stat-value">363</div><div class="stat-label">最長在庫(日)</div></div>
+</div>
+
+<div class="chart-grid">
+    <div class="chart-card full">
+        <h3>📈 日別アクティブ商品数（最新60日）</h3>
+        <canvas id="dailyChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>⏳ 商品の生存期間分布</h3>
+        <canvas id="lifespanChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>📊 月別新規入荷数</h3>
+        <canvas id="monthlyChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>🎤 アーティスト別出品数 TOP20</h3>
+        <canvas id="artistChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>🏪 店舗別在庫数 TOP15</h3>
+        <canvas id="storeChart"></canvas>
+    </div>
+</div>
+
+<div class="ranking" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:1200px; margin:0 auto;">
+    <div class="chart-card">
+        <h3>⚡ 即売れCD ランキング（入荷後すぐ消えた）</h3>
+        <table>
+        <tr><th>#</th><th>商品</th><th>アーティスト</th><th>日数</th></tr>
+        <tr><td>1</td><td>ライヴ・アット・オレックス・ジャズ・フェスティバル'83</td><td>アート・ブレイキー&ザ・ジャズ・メッセン</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>2</td><td>クォーター・フラッシュ</td><td>クォーター・フラッシュ</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>3</td><td>マイ・ファンタジー</td><td>小泉今日子</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>4</td><td>黒いオルフェ</td><td>鈴木勲トリオ</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>5</td><td>ステイション・トゥ・ステイション</td><td>デヴィッド・ボウイ</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>6</td><td>パープル・レイン</td><td>プリンス&ザ・レヴォリューション</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>7</td><td>ミスター・ワンダフル</td><td>細川綾子・横内章次クインテット&ストリン</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>8</td><td>ブロンド・オン・ブロイド</td><td>ボブ・ディラン</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>9</td><td>オフ・ザ・ウォール</td><td>マイケル・ジャクソン</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>10</td><td>トゥルー・ブルー</td><td>マドンナ</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>11</td><td>ブルース・ワールド</td><td>和田直</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>12</td><td>ザダイアローグ(SACD)</td><td>猪俣猛</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>13</td><td>出雲阿国</td><td>ティー&カンパニー</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>14</td><td>ライク・ア・ヴァージン</td><td>マドンナ</td><td class='badge-fast'>1日</td></tr>
+        <tr><td>15</td><td>【輸入盤】Distortion F Love</td><td>パトリシア・バーバー</td><td class='badge-fast'>1日</td></tr>
+        </table>
+    </div>
+    <div class="chart-card">
+        <h3>🦥 絶対売れないCD（長期在庫）</h3>
+        <table>
+        <tr><th>#</th><th>商品</th><th>アーティスト</th><th>在庫日数</th></tr>
+        <tr><td>1</td><td>中森明菜シングルス 27 1982-1991(DVD-Audio)</td><td>中森明菜</td><td class='badge-monster'>363日</td></tr>
+        <tr><td>2</td><td>メディア・バーン・ライブ</td><td>坂本龍一</td><td class='badge-monster'>362日</td></tr>
+        <tr><td>3</td><td>音楽図鑑(完壁盤)</td><td>坂本龍一</td><td class='badge-monster'>362日</td></tr>
+        <tr><td>4</td><td>リアクター(DVD-Audio)</td><td>ニール・ヤング&クレイジー・ホース</td><td class='badge-monster'>362日</td></tr>
+        <tr><td>5</td><td>【輸入盤】Waltz for Debby</td><td>ビル・エヴァンス・トリオ</td><td class='badge-monster'>362日</td></tr>
+        <tr><td>6</td><td>コーダ</td><td>坂本龍一</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>7</td><td>戦場のメリークリスマス</td><td>坂本龍一</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>8</td><td>フリートウッド・マック</td><td>フリートウッド・マック</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>9</td><td>パラダイス・ヴュー</td><td>細野晴臣</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>10</td><td>スコール</td><td>松田聖子</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>11</td><td>ノース・ウィンド</td><td>松田聖子</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>12</td><td>Lady Bounce</td><td>松原みき</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>13</td><td>オネアミスの翼-王立宇宙軍-オリジナル・サウンド・トラック</td><td>坂本龍一</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>14</td><td>伝説のライヴ-HOW THE WEST WAS WON-(2DVD-A</td><td>レッド・ツェッペリン</td><td class='badge-monster'>361日</td></tr>
+        <tr><td>15</td><td>TOKYO INSTALLATION</td><td>井上鑑</td><td class='badge-monster'>361日</td></tr>
+        </table>
+    </div>
+</div>
+
+<div class="footer">
+    Generated by BookOff Analyzer | Data: 2025/06/07 〜 2026/06/27
+</div>
+
+<script>
+// 日別アクティビティ
+new Chart(document.getElementById('dailyChart'), {{
+    type: 'line',
+    data: {{
+        labels: ["2026/04/26", "2026/04/28", "2026/04/29", "2026/05/02", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/06", "2026/05/07", "2026/05/08", "2026/05/09", "2026/05/10", "2026/05/11", "2026/05/12", "2026/05/13", "2026/05/14", "2026/05/15", "2026/05/16", "2026/05/17", "2026/05/18", "2026/05/19", "2026/05/20", "2026/05/21", "2026/05/22", "2026/05/23", "2026/05/24", "2026/05/25", "2026/05/26", "2026/05/27", "2026/05/28", "2026/05/29", "2026/05/30", "2026/05/31", "2026/06/01", "2026/06/02", "2026/06/03", "2026/06/04", "2026/06/05", "2026/06/06", "2026/06/07", "2026/06/08", "2026/06/09", "2026/06/10", "2026/06/11", "2026/06/12", "2026/06/13", "2026/06/14", "2026/06/15", "2026/06/16", "2026/06/17", "2026/06/18", "2026/06/19", "2026/06/20", "2026/06/21", "2026/06/22", "2026/06/23", "2026/06/24", "2026/06/25", "2026/06/26", "2026/06/27"],
+        datasets: [{{
+            label: 'アクティブ商品数',
+            data: [191, 192, 191, 164, 168, 168, 136, 185, 186, 185, 184, 187, 187, 185, 184, 185, 185, 188, 188, 189, 188, 189, 191, 193, 192, 191, 191, 191, 168, 192, 194, 191, 184, 189, 188, 187, 135, 186, 184, 185, 185, 183, 184, 183, 184, 184, 182, 181, 183, 182, 181, 180, 182, 184, 186, 184, 183, 182, 182, 182],
+            borderColor: '#ff6b35',
+            backgroundColor: 'rgba(255,107,53,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+        }}]
+    }},
+    options: {{
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }} }},
+        scales: {{
+            x: {{ ticks: {{ color: '#888', maxTicksLimit: 15, font: {{ size: 10 }} }} }},
+            y: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }}
+        }}
+    }}
+}});
+
+// 生存期間分布
+new Chart(document.getElementById('lifespanChart'), {{
+    type: 'bar',
+    data: {{
+        labels: ["1日", "2-3日", "4-7日", "8-14日", "15-30日", "31-60日", "61-100日", "101-200日", "201日〜"],
+        datasets: [{{
+            label: '商品数',
+            data: [17, 6, 20, 35, 26, 46, 21, 58, 148],
+            backgroundColor: ['#ff6b35', '#ff8c5a', '#ffa77a', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#b2bec3'],
+        }}]
+    }},
+    options: {{
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }} }},
+        scales: {{
+            x: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }},
+            y: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }}
+        }}
+    }}
+}});
+
+// 月別新規入荷
+new Chart(document.getElementById('monthlyChart'), {{
+    type: 'bar',
+    data: {{
+        labels: ["2025/06", "2025/07", "2025/08", "2025/09", "2025/10", "2025/11", "2025/12", "2026/01", "2026/02", "2026/03", "2026/04", "2026/05", "2026/06"],
+        datasets: [{{
+            label: '新規入荷数',
+            data: [206, 24, 11, 18, 8, 10, 5, 45, 9, 18, 11, 8, 4],
+            backgroundColor: '#4ecdc4',
+        }}]
+    }},
+    options: {{
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }} }},
+        scales: {{
+            x: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }},
+            y: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }}
+        }}
+    }}
+}});
+
+// アーティストTOP
+new Chart(document.getElementById('artistChart'), {{
+    type: 'bar',
+    data: {{
+        labels: ["松田聖子", "マイルス・デイヴィス", "キング・クリムゾン", "坂本龍一", "細野晴臣", "YELLOW MAGIC ORCHESTRA/YMO", "ジョン・コルトレーン", "スコーピオンズ", "ピンク・フロイド", "ボベスコ", "中森明菜", "ビル・エヴァンス", "ソニー・ロリンズ", "ハービー・ハンコック", "ビリー・ジョエル", "山本剛トリオ", "TOTO", "アート・ペッパー", "ボズ・スキャッグス", "大滝詠一"],
+        datasets: [{{
+            label: '商品数',
+            data: [21, 18, 9, 8, 8, 7, 7, 7, 7, 7, 7, 6, 5, 5, 5, 5, 4, 4, 4, 4],
+            backgroundColor: '#45b7d1',
+        }}]
+    }},
+    options: {{
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }} }},
+        scales: {{
+            x: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }},
+            y: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }}
+        }}
+    }}
+}});
+
+// 店舗TOP
+new Chart(document.getElementById('storeChart'), {{
+    type: 'bar',
+    data: {{
+        labels: ["BOOKOFF 秋葉原駅前店", "BOOKOFF SUPER BAZAAR", "BOOKOFF 池袋サンシャイン60通り", "BOOKOFF SUPER BAZAAR", "BOOKOFF 西台高島通り店", "BOOKOFF 京都三条駅ビル店", "BOOKOFF SUPER BAZAAR", "BOOKOFF SUPER BAZAAR", "BOOKOFF SUPER BAZAAR", "BOOKOFF SUPER BAZAAR", "BOOKOFF SUPER BAZAAR", "BOOKOFF PLUS 熱田国道1号店", "BOOKOFF 吉祥寺駅北口店", "BOOKOFF SUPER BAZAAR", "BOOKOFF SUPER BAZAAR"],
+        datasets: [{{
+            label: '商品数',
+            data: [40, 39, 28, 26, 24, 23, 23, 23, 23, 22, 22, 21, 20, 20, 20],
+            backgroundColor: '#96ceb4',
+        }}]
+    }},
+    options: {{
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }} }},
+        scales: {{
+            x: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }},
+            y: {{ ticks: {{ color: '#888', font: {{ size: 10 }} }} }}
+        }}
+    }}
+}});
+</script>
+</body>
+</html>
